@@ -497,9 +497,9 @@
         <div class="slider-row" style="margin-top:14px;">
           <span class="slider-label">SPD</span>
           <div class="slider-container">
-            <input type="range" id="speedSlider" min="1" max="255" value="128" oninput="onSpeedChange(this.value)">
+            <input type="range" id="speedSlider" min="1" max="31" value="16" oninput="onSpeedChange(this.value)">
           </div>
-          <span class="slider-val" id="speedVal" style="font-size:13px;">128</span>
+          <span class="slider-val" id="speedVal" style="font-size:13px;">16</span>
         </div>
         <div class="effect-stop-row">
           <button class="btn btn-stop" onclick="stopEffect()">Stop Effect</button>
@@ -558,7 +558,7 @@ let isPowerOn = false;
 let currentColor = { r: 255, g: 0, b: 0 };
 let brightness = 100;
 let warmWhite = 0;
-let effectSpeed = 128;
+let effectSpeed = 16;
 let activeEffect = null;
 let writeQueue = Promise.resolve();
 
@@ -735,18 +735,18 @@ function cmdSetColor(r, g, b, ww) {
 
 function cmdSetMode(modeId, speed) {
   // Protocol: [0xBB, mode, speed, 0x44]
-  // Speed is inverted: lower value = faster animation on Apollo hardware
-  // Ensure power is on first, then send mode after brief delay
+  // Speed range: 1-31 (from APK), sent directly (no inversion)
+  // Ensure power is on first
   if (!isPowerOn) {
     isPowerOn = true;
     document.getElementById('powerToggle').classList.add('on');
     document.getElementById('powerLabel').textContent = 'ON';
     cmdPowerOn();
+    // Delay to let power-on settle before mode command
+    writeQueue = writeQueue.then(() => new Promise(r => setTimeout(r, 100)));
   }
-  // Small delay to let power-on settle before mode command
-  writeQueue = writeQueue.then(() => new Promise(r => setTimeout(r, 50)));
-  const invertedSpeed = (256 - speed) & 0xFF;
-  writeBytes([0xBB, modeId & 0xFF, invertedSpeed, 0x44]);
+  const clampedSpeed = Math.max(1, Math.min(31, speed));
+  writeBytes([0xBB, modeId & 0xFF, clampedSpeed, 0x44]);
 }
 
 // ============ Power ============
