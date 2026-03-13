@@ -585,6 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initColorPicker();
   buildPresets();
   buildEffects();
+  tryAutoReconnect();
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -592,13 +593,102 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============ BLE Connection ============
+
+// Try to auto-reconnect to a previously paired device on app launch
+async function tryAutoReconnect() {
+  if (!navigator.bluetooth.getDevices) return;
+  try {
+    const devices = await navigator.bluetooth.getDevices();
+    const apollo = devices.find(d => d.name && d.name.startsWith('AP'));
+    if (!apollo) return;
+    setStatus('connecting');
+    document.getElementById('connectBtnText').textContent = 'Reconnecting...';
+    document.getElementById('connectBtn').disabled = true;
+    document.getElementById('deviceName').textContent = apollo.name;
+
+    // Watch for the device to come in range
+    const abortCtrl = new AbortController();
+    apollo.addEventListener('advertisementreceived', async () => {
+      abortCtrl.abort();
+      try {
+        await connectToDevice(apollo);
+      } catch (e) {
+        console.error('Auto-reconnect failed:', e);
+        setStatus('disconnected');
+        document.getElementById('connectBtn').disabled = false;
+        document.getElementById('connectBtnText').textContent = 'Connect';
+        document.getElementById('deviceName').textContent = '';
+      }
+    }, { once: true });
+
+    // Scan for advertisements for up to 8 seconds
+    await apollo.watchAdvertisements({ signal: abortCtrl.signal }).catch(() => {});
+    setTimeout(() => {
+      if (!isConnected) {
+        abortCtrl.abort();
+        setStatus('disconnected');
+        document.getElementById('connectBtn').disabled = false;
+        document.getElementById('connectBtnText').textContent = 'Connect';
+        document.getElementById('deviceName').textContent = '';
+      }
+    }, 8000);
+  } catch (e) {
+    // getDevices or watchAdvertisements not supported, silently skip
+    setStatus('disconnected');
+    document.getElementById('connectBtn').disabled = false;
+    document.getElementById('connectBtnText').textContent = 'Connect';
+  }
+}
+
+// Shared connection logic used by both manual connect and auto-reconnect
+async function connectToDevice(device) {
+  bleDevice = device;
+  bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
+  document.getElementById('connectBtnText').textContent = 'Connecting...';
+  const server = await bleDevice.gatt.connect();
+
+  // Try the known Apollo service/characteristic UUIDs first
+  try {
+    const service = await server.getPrimaryService(BLE_SERVICE_UUID);
+    bleCharacteristic = await service.getCharacteristic(BLE_CHAR_UUID);
+  } catch (e) {
+    // Fallback: scan all services for writable characteristic
+    const services = await server.getPrimaryServices();
+    for (const service of services) {
+      try {
+        const chars = await service.getCharacteristics();
+        for (const char of chars) {
+          if (char.properties.write || char.properties.writeWithoutResponse) {
+            bleCharacteristic = char;
+            break;
+          }
+        }
+        if (bleCharacteristic) break;
+      } catch (e2) { /* skip */ }
+    }
+  }
+
+  if (!bleCharacteristic) throw new Error('No writable characteristic found');
+
+  isConnected = true;
+  setStatus('connected');
+  document.getElementById('connectBtn').disabled = true;
+  document.getElementById('disconnectBtn').disabled = false;
+  document.getElementById('connectBtnText').textContent = 'Connected';
+  document.getElementById('deviceName').textContent = bleDevice.name || 'Unknown Device';
+  document.getElementById('controls').classList.remove('disabled');
+  showToast('Connected to ' + (bleDevice.name || 'device'));
+  vibrate();
+}
+
 async function handleConnect() {
   try {
     setStatus('connecting');
     document.getElementById('connectBtnText').textContent = 'Scanning...';
     document.getElementById('connectBtn').disabled = true;
 
-    bleDevice = await navigator.bluetooth.requestDevice({
+    const device = await navigator.bluetooth.requestDevice({
       filters: [{ namePrefix: 'AP' }],
       optionalServices: [
         BLE_SERVICE_UUID,
@@ -609,43 +699,7 @@ async function handleConnect() {
       ]
     });
 
-    bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
-
-    document.getElementById('connectBtnText').textContent = 'Connecting...';
-    const server = await bleDevice.gatt.connect();
-
-    // Try the known Apollo service/characteristic UUIDs first
-    try {
-      const service = await server.getPrimaryService(BLE_SERVICE_UUID);
-      bleCharacteristic = await service.getCharacteristic(BLE_CHAR_UUID);
-    } catch (e) {
-      // Fallback: scan all services for writable characteristic
-      const services = await server.getPrimaryServices();
-      for (const service of services) {
-        try {
-          const chars = await service.getCharacteristics();
-          for (const char of chars) {
-            if (char.properties.write || char.properties.writeWithoutResponse) {
-              bleCharacteristic = char;
-              break;
-            }
-          }
-          if (bleCharacteristic) break;
-        } catch (e2) { /* skip */ }
-      }
-    }
-
-    if (!bleCharacteristic) throw new Error('No writable characteristic found');
-
-    isConnected = true;
-    setStatus('connected');
-    document.getElementById('connectBtn').disabled = true;
-    document.getElementById('disconnectBtn').disabled = false;
-    document.getElementById('connectBtnText').textContent = 'Connected';
-    document.getElementById('deviceName').textContent = bleDevice.name || 'Unknown Device';
-    document.getElementById('controls').classList.remove('disabled');
-    showToast('Connected to ' + (bleDevice.name || 'device'));
-    vibrate();
+    await connectToDevice(device);
 
   } catch (err) {
     console.error('Connection failed:', err);

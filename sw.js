@@ -1,4 +1,4 @@
-const CACHE_NAME = 'apollo-v7';
+const CACHE_NAME = 'apollo-v8';
 const ASSETS = ['./index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', (e) => {
