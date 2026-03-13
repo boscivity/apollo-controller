@@ -184,29 +184,34 @@
   }
   .toggle-track.on .toggle-knob { transform: translateX(30px); }
 
-  /* Color Wheel */
-  .color-wheel-container {
+  /* Square Color Picker */
+  .color-picker-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
   }
-  .wheel-wrapper { position: relative; width: 240px; height: 240px; }
-  #colorWheel {
-    width: 240px; height: 240px;
-    border-radius: 50%;
-    cursor: crosshair;
-    touch-action: none;
-  }
-  .wheel-cursor {
+  .sv-wrapper { position: relative; width: 100%; aspect-ratio: 1; border-radius: 10px; overflow: hidden; cursor: crosshair; touch-action: none; }
+  .sv-canvas { width: 100%; height: 100%; display: block; }
+  .sv-cursor {
     position: absolute;
-    width: 24px; height: 24px;
+    width: 22px; height: 22px;
     border-radius: 50%;
     border: 3px solid #fff;
     box-shadow: 0 0 6px rgba(0,0,0,0.5), inset 0 0 4px rgba(0,0,0,0.2);
     pointer-events: none;
     transform: translate(-50%, -50%);
-    transition: left 0.05s, top 0.05s;
+  }
+  .hue-bar-wrapper { width: 100%; height: 28px; border-radius: 8px; overflow: hidden; cursor: pointer; touch-action: none; position: relative; }
+  .hue-bar-canvas { width: 100%; height: 100%; display: block; }
+  .hue-bar-cursor {
+    position: absolute;
+    top: -2px; width: 6px; height: 32px;
+    border-radius: 3px;
+    border: 2px solid #fff;
+    box-shadow: 0 0 4px rgba(0,0,0,0.5);
+    pointer-events: none;
+    transform: translateX(-50%);
   }
   .color-preview-row {
     display: flex;
@@ -281,30 +286,31 @@
   .presets-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
+    gap: 10px;
   }
   .preset-btn {
-    aspect-ratio: 1;
     border-radius: 14px;
     border: 2px solid transparent;
     cursor: pointer;
     transition: all 0.2s;
     position: relative;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 6px 2px;
+    min-height: 56px;
   }
   .preset-btn:active { transform: scale(0.88); }
   .preset-btn.active { border-color: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.3); }
   .preset-label {
-    position: absolute;
-    bottom: -18px;
-    left: 50%;
-    transform: translateX(-50%);
     font-size: 9px;
-    font-weight: 600;
-    color: var(--text-dim);
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.7);
     white-space: nowrap;
   }
-  .presets-grid-wrapper { padding-bottom: 20px; }
+  .presets-grid-wrapper { }
 
   /* Effects */
   .effects-grid {
@@ -437,13 +443,17 @@
         </div>
       </div>
 
-      <!-- Color Wheel -->
+      <!-- Color Picker -->
       <div class="card">
         <div class="card-label">Color</div>
-        <div class="color-wheel-container">
-          <div class="wheel-wrapper">
-            <canvas id="colorWheel" width="480" height="480"></canvas>
-            <div class="wheel-cursor" id="wheelCursor"></div>
+        <div class="color-picker-container">
+          <div class="sv-wrapper" id="svWrapper">
+            <canvas class="sv-canvas" id="svCanvas"></canvas>
+            <div class="sv-cursor" id="svCursor"></div>
+          </div>
+          <div class="hue-bar-wrapper" id="hueBarWrapper">
+            <canvas class="hue-bar-canvas" id="hueBarCanvas"></canvas>
+            <div class="hue-bar-cursor" id="hueBarCursor"></div>
           </div>
           <div class="color-preview-row">
             <div class="color-swatch" id="colorSwatch" style="background: #ff0000;"></div>
@@ -572,10 +582,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('mainContent').style.display = 'none';
     return;
   }
-  drawColorWheel();
+  initColorPicker();
   buildPresets();
   buildEffects();
-  initWheelInteraction();
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -726,7 +735,18 @@ function cmdSetColor(r, g, b, ww) {
 
 function cmdSetMode(modeId, speed) {
   // Protocol: [0xBB, mode, speed, 0x44]
-  writeBytes([0xBB, modeId & 0xFF, speed & 0xFF, 0x44]);
+  // Speed is inverted: lower value = faster animation on Apollo hardware
+  // Ensure power is on first, then send mode after brief delay
+  if (!isPowerOn) {
+    isPowerOn = true;
+    document.getElementById('powerToggle').classList.add('on');
+    document.getElementById('powerLabel').textContent = 'ON';
+    cmdPowerOn();
+  }
+  // Small delay to let power-on settle before mode command
+  writeQueue = writeQueue.then(() => new Promise(r => setTimeout(r, 50)));
+  const invertedSpeed = (256 - speed) & 0xFF;
+  writeBytes([0xBB, modeId & 0xFF, invertedSpeed, 0x44]);
 }
 
 // ============ Power ============
@@ -764,33 +784,10 @@ function updateColorDisplay(r, g, b) {
   document.querySelectorAll('.preset-btn.active').forEach(b => b.classList.remove('active'));
 }
 
-// ============ Color Wheel ============
-function drawColorWheel() {
-  const canvas = document.getElementById('colorWheel');
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width, h = canvas.height;
-  const cx = w / 2, cy = h / 2, radius = cx;
-  const imageData = ctx.createImageData(w, h);
-  const data = imageData.data;
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const dx = x - cx, dy = y - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist <= radius) {
-        const angle = Math.atan2(dy, dx);
-        const hue = ((angle * 180 / Math.PI) + 360) % 360;
-        const sat = dist / radius;
-        const rgb = hsvToRgb(hue, sat, 1);
-        const idx = (y * w + x) * 4;
-        data[idx] = rgb[0]; data[idx+1] = rgb[1]; data[idx+2] = rgb[2]; data[idx+3] = 255;
-      }
-    }
-  }
-  ctx.putImageData(imageData, 0, 0);
-  ctx.globalCompositeOperation = 'destination-in';
-  ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.fill();
-  ctx.globalCompositeOperation = 'source-over';
-}
+// ============ Square Color Picker (Hue bar + SV square) ============
+let pickerHue = 0;
+let pickerSat = 1;
+let pickerVal = 1;
 
 function hsvToRgb(h, s, v) {
   const c = v * s, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = v - c;
@@ -804,30 +801,90 @@ function hsvToRgb(h, s, v) {
   return [Math.round((r+m)*255), Math.round((g+m)*255), Math.round((b+m)*255)];
 }
 
-function initWheelInteraction() {
-  const canvas = document.getElementById('colorWheel');
-  const cursor = document.getElementById('wheelCursor');
-  let dragging = false;
-  function pickColor(clientX, clientY) {
-    const rect = canvas.getBoundingClientRect();
-    const x = clientX - rect.left, y = clientY - rect.top;
-    const cx = rect.width/2, cy = rect.height/2;
-    const dx = x - cx, dy = y - cy;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    if (dist > rect.width/2) return;
-    const angle = Math.atan2(dy, dx);
-    const hue = ((angle * 180 / Math.PI) + 360) % 360;
-    const sat = Math.min(dist / (rect.width/2), 1);
-    const rgb = hsvToRgb(hue, sat, 1);
-    cursor.style.left = (x / rect.width * 100) + '%';
-    cursor.style.top = (y / rect.height * 100) + '%';
-    updateColorDisplay(rgb[0], rgb[1], rgb[2]);
+function drawSVCanvas() {
+  const canvas = document.getElementById('svCanvas');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * 2; canvas.height = rect.height * 2;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  // Base hue color
+  const [hr, hg, hb] = hsvToRgb(pickerHue, 1, 1);
+  // White-to-hue horizontal gradient
+  const gradH = ctx.createLinearGradient(0, 0, w, 0);
+  gradH.addColorStop(0, '#fff');
+  gradH.addColorStop(1, `rgb(${hr},${hg},${hb})`);
+  ctx.fillStyle = gradH;
+  ctx.fillRect(0, 0, w, h);
+  // Black vertical gradient overlay
+  const gradV = ctx.createLinearGradient(0, 0, 0, h);
+  gradV.addColorStop(0, 'rgba(0,0,0,0)');
+  gradV.addColorStop(1, 'rgba(0,0,0,1)');
+  ctx.fillStyle = gradV;
+  ctx.fillRect(0, 0, w, h);
+}
+
+function drawHueBar() {
+  const canvas = document.getElementById('hueBarCanvas');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * 2; canvas.height = rect.height * 2;
+  const ctx = canvas.getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+  for (let i = 0; i <= 6; i++) {
+    const colors = ['#ff0000','#ffff00','#00ff00','#00ffff','#0000ff','#ff00ff','#ff0000'];
+    grad.addColorStop(i/6, colors[i]);
   }
-  canvas.addEventListener('pointerdown', (e) => { dragging = true; canvas.setPointerCapture(e.pointerId); pickColor(e.clientX, e.clientY); });
-  canvas.addEventListener('pointermove', (e) => { if (dragging) pickColor(e.clientX, e.clientY); });
-  canvas.addEventListener('pointerup', () => { if (dragging) { dragging = false; sendColorCommand(currentColor.r, currentColor.g, currentColor.b); } });
-  canvas.addEventListener('pointercancel', () => { dragging = false; });
-  cursor.style.left = '88%'; cursor.style.top = '50%';
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function updatePickerFromHSV() {
+  const rgb = hsvToRgb(pickerHue, pickerSat, pickerVal);
+  updateColorDisplay(rgb[0], rgb[1], rgb[2]);
+  // Position SV cursor
+  const svCursor = document.getElementById('svCursor');
+  svCursor.style.left = (pickerSat * 100) + '%';
+  svCursor.style.top = ((1 - pickerVal) * 100) + '%';
+  svCursor.style.background = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+  // Position hue cursor
+  const hueCursor = document.getElementById('hueBarCursor');
+  hueCursor.style.left = (pickerHue / 360 * 100) + '%';
+}
+
+function initColorPicker() {
+  drawHueBar();
+  drawSVCanvas();
+  updatePickerFromHSV();
+
+  // SV square interaction
+  const svWrapper = document.getElementById('svWrapper');
+  let svDragging = false;
+  function pickSV(clientX, clientY) {
+    const rect = svWrapper.getBoundingClientRect();
+    const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+    const y = Math.max(0, Math.min(clientY - rect.top, rect.height));
+    pickerSat = x / rect.width;
+    pickerVal = 1 - y / rect.height;
+    updatePickerFromHSV();
+  }
+  svWrapper.addEventListener('pointerdown', (e) => { svDragging = true; svWrapper.setPointerCapture(e.pointerId); pickSV(e.clientX, e.clientY); });
+  svWrapper.addEventListener('pointermove', (e) => { if (svDragging) pickSV(e.clientX, e.clientY); });
+  svWrapper.addEventListener('pointerup', () => { if (svDragging) { svDragging = false; sendColorCommand(currentColor.r, currentColor.g, currentColor.b); } });
+  svWrapper.addEventListener('pointercancel', () => { svDragging = false; });
+
+  // Hue bar interaction
+  const hueWrapper = document.getElementById('hueBarWrapper');
+  let hueDragging = false;
+  function pickHue(clientX) {
+    const rect = hueWrapper.getBoundingClientRect();
+    const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+    pickerHue = (x / rect.width) * 360;
+    drawSVCanvas();
+    updatePickerFromHSV();
+  }
+  hueWrapper.addEventListener('pointerdown', (e) => { hueDragging = true; hueWrapper.setPointerCapture(e.pointerId); pickHue(e.clientX); });
+  hueWrapper.addEventListener('pointermove', (e) => { if (hueDragging) pickHue(e.clientX); });
+  hueWrapper.addEventListener('pointerup', () => { if (hueDragging) { hueDragging = false; sendColorCommand(currentColor.r, currentColor.g, currentColor.b); } });
+  hueWrapper.addEventListener('pointercancel', () => { hueDragging = false; });
 }
 
 // ============ Brightness + Warm White ============
