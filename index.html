@@ -780,7 +780,6 @@ function updateColorDisplay(r, g, b) {
   document.getElementById('colorSwatch').style.background = `rgb(${r},${g},${b})`;
   document.getElementById('colorSwatch').style.boxShadow = `0 0 20px rgba(${r},${g},${b},0.4)`;
   document.getElementById('colorHex').textContent = hexStr;
-  document.getElementById('wheelCursor').style.background = `rgb(${r},${g},${b})`;
   document.querySelectorAll('.preset-btn.active').forEach(b => b.classList.remove('active'));
 }
 
