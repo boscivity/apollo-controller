@@ -745,8 +745,10 @@ function cmdSetMode(modeId, speed) {
     // Delay to let power-on settle before mode command
     writeQueue = writeQueue.then(() => new Promise(r => setTimeout(r, 100)));
   }
-  const clampedSpeed = Math.max(1, Math.min(31, speed));
-  writeBytes([0xBB, modeId & 0xFF, clampedSpeed, 0x44]);
+  // Slider is 1-31 left-to-right (slow→fast), but hardware uses lower=faster
+  // So invert: slider value 31 (fastest) → send 1, slider value 1 (slowest) → send 31
+  const inverted = 32 - Math.max(1, Math.min(31, speed));
+  writeBytes([0xBB, modeId & 0xFF, inverted, 0x44]);
 }
 
 // ============ Power ============
