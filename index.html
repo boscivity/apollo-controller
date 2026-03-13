@@ -591,7 +591,13 @@ async function handleConnect() {
 
     bleDevice = await navigator.bluetooth.requestDevice({
       filters: [{ namePrefix: 'AP' }],
-      optionalServices: [BLE_SERVICE_UUID]
+      optionalServices: [
+        BLE_SERVICE_UUID,
+        0xffd0, 0xffd1, 0xffd3, 0xffd4,
+        0xfff0, 0xfff3, 0xfff4, 0xfff5, 0xfff7, 0xfff9,
+        0xffe1, 0xffe2,
+        0x1800, 0x1802, 0x1803, 0x1804, 0x180a, 0x180d, 0x180f
+      ]
     });
 
     bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
