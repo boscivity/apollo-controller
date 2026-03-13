@@ -116,10 +116,7 @@
   }
 
   /* Connect Section */
-  .connect-area {
-    display: flex;
-    gap: 10px;
-  }
+  .connect-area { display: flex; gap: 10px; }
   .btn {
     display: flex;
     align-items: center;
@@ -161,10 +158,7 @@
     align-items: center;
     justify-content: space-between;
   }
-  .power-label {
-    font-size: 18px;
-    font-weight: 600;
-  }
+  .power-label { font-size: 18px; font-weight: 600; }
   .toggle-track {
     width: 64px;
     height: 34px;
@@ -180,13 +174,11 @@
     box-shadow: 0 0 15px var(--accent-glow);
   }
   .toggle-knob {
-    width: 26px;
-    height: 26px;
+    width: 26px; height: 26px;
     border-radius: 50%;
     background: #fff;
     position: absolute;
-    top: 2px;
-    left: 2px;
+    top: 2px; left: 2px;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 6px rgba(0,0,0,0.3);
   }
@@ -199,22 +191,16 @@
     align-items: center;
     gap: 16px;
   }
-  .wheel-wrapper {
-    position: relative;
-    width: 240px;
-    height: 240px;
-  }
+  .wheel-wrapper { position: relative; width: 240px; height: 240px; }
   #colorWheel {
-    width: 240px;
-    height: 240px;
+    width: 240px; height: 240px;
     border-radius: 50%;
     cursor: crosshair;
     touch-action: none;
   }
   .wheel-cursor {
     position: absolute;
-    width: 24px;
-    height: 24px;
+    width: 24px; height: 24px;
     border-radius: 50%;
     border: 3px solid #fff;
     box-shadow: 0 0 6px rgba(0,0,0,0.5), inset 0 0 4px rgba(0,0,0,0.2);
@@ -229,8 +215,7 @@
     width: 100%;
   }
   .color-swatch {
-    width: 48px;
-    height: 48px;
+    width: 48px; height: 48px;
     border-radius: 12px;
     border: 2px solid var(--border);
     transition: background 0.15s, box-shadow 0.15s;
@@ -249,13 +234,14 @@
     box-shadow: 0 3px 10px var(--accent-glow);
   }
 
-  /* Brightness */
-  .brightness-row {
+  /* Sliders */
+  .slider-row {
     display: flex;
     align-items: center;
     gap: 14px;
   }
-  .brightness-icon { font-size: 18px; color: var(--text-dim); flex-shrink: 0; }
+  .slider-row + .slider-row { margin-top: 14px; }
+  .slider-icon { font-size: 18px; color: var(--text-dim); flex-shrink: 0; width: 22px; text-align: center; }
   .slider-container { flex: 1; position: relative; }
   input[type="range"] {
     -webkit-appearance: none;
@@ -268,19 +254,27 @@
   }
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 24px;
-    height: 24px;
+    width: 24px; height: 24px;
     border-radius: 50%;
     background: linear-gradient(135deg, #7c5cff, #5c3cdf);
     box-shadow: 0 2px 8px var(--accent-glow);
     cursor: pointer;
   }
-  .brightness-val {
+  #warmWhiteSlider::-webkit-slider-thumb {
+    background: linear-gradient(135deg, #ffcc66, #cc8800);
+  }
+  .slider-val {
     font-size: 16px;
     font-weight: 700;
     min-width: 45px;
     text-align: right;
     color: var(--text);
+  }
+  .slider-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-weight: 600;
+    min-width: 22px;
   }
 
   /* Presets */
@@ -310,8 +304,51 @@
     color: var(--text-dim);
     white-space: nowrap;
   }
-  .presets-grid-wrapper {
-    padding-bottom: 20px;
+  .presets-grid-wrapper { padding-bottom: 20px; }
+
+  /* Effects */
+  .effects-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .effect-btn {
+    padding: 12px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    line-height: 1.3;
+  }
+  .effect-btn:active { transform: scale(0.95); }
+  .effect-btn.active {
+    border-color: var(--accent);
+    background: rgba(124, 92, 255, 0.15);
+    color: #b8a0ff;
+    box-shadow: 0 0 10px var(--accent-glow);
+  }
+  .effect-btn .effect-icon {
+    display: block;
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+  .effect-stop-row {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+  }
+  .btn-stop {
+    flex: 1;
+    padding: 10px;
+    font-size: 13px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
   }
 
   /* Toast */
@@ -347,10 +384,7 @@
   .no-bluetooth h2 { font-size: 20px; }
   .no-bluetooth p { color: var(--text-dim); font-size: 14px; line-height: 1.6; }
 
-  /* Bottom spacer */
   .bottom-spacer { height: 30px; flex-shrink: 0; }
-
-  /* Disabled overlay for controls */
   .controls-section { transition: opacity 0.3s; }
   .controls-section.disabled { opacity: 0.35; pointer-events: none; }
 </style>
@@ -358,7 +392,6 @@
 <body>
 
 <div class="app" id="app">
-  <!-- Header -->
   <div class="header">
     <h1>Apollo</h1>
     <div class="status-badge" id="statusBadge">
@@ -367,7 +400,6 @@
     </div>
   </div>
 
-  <!-- No Bluetooth Error -->
   <div class="no-bluetooth" id="noBluetooth">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M6.343 6.343l11.314 11.314M12 2v7.5l4.5-4.5L12 2zm0 20v-7.5l4.5 4.5L12 22zM2 12h4M18 12h4"/>
@@ -377,7 +409,6 @@
     <p>This app requires Web Bluetooth, which is available in Chrome on Android. Make sure you're using Chrome and Bluetooth is enabled on your device.</p>
   </div>
 
-  <!-- Main Content -->
   <div id="mainContent">
     <!-- Connect -->
     <div class="card">
@@ -394,7 +425,6 @@
       <div class="device-name" id="deviceName"></div>
     </div>
 
-    <!-- Controls -->
     <div class="controls-section disabled" id="controls">
       <!-- Power -->
       <div class="card">
@@ -423,15 +453,22 @@
         </div>
       </div>
 
-      <!-- Brightness -->
+      <!-- Brightness + Warm White -->
       <div class="card">
-        <div class="card-label">Brightness</div>
-        <div class="brightness-row">
-          <span class="brightness-icon">&#9788;</span>
+        <div class="card-label">Brightness &amp; Warm White</div>
+        <div class="slider-row">
+          <span class="slider-icon">&#9788;</span>
           <div class="slider-container">
             <input type="range" id="brightnessSlider" min="5" max="100" value="100" oninput="onBrightnessChange(this.value)">
           </div>
-          <span class="brightness-val" id="brightnessVal">100%</span>
+          <span class="slider-val" id="brightnessVal">100%</span>
+        </div>
+        <div class="slider-row">
+          <span class="slider-icon" style="color:#ffcc66;">&#9679;</span>
+          <div class="slider-container">
+            <input type="range" id="warmWhiteSlider" min="0" max="255" value="0" oninput="onWarmWhiteChange(this.value)">
+          </div>
+          <span class="slider-val" id="warmWhiteVal">0</span>
         </div>
       </div>
 
@@ -440,6 +477,22 @@
         <div class="card-label">Presets</div>
         <div class="presets-grid-wrapper">
           <div class="presets-grid" id="presetsGrid"></div>
+        </div>
+      </div>
+
+      <!-- Effects -->
+      <div class="card">
+        <div class="card-label">Effects</div>
+        <div class="effects-grid" id="effectsGrid"></div>
+        <div class="slider-row" style="margin-top:14px;">
+          <span class="slider-label">SPD</span>
+          <div class="slider-container">
+            <input type="range" id="speedSlider" min="1" max="255" value="128" oninput="onSpeedChange(this.value)">
+          </div>
+          <span class="slider-val" id="speedVal" style="font-size:13px;">128</span>
+        </div>
+        <div class="effect-stop-row">
+          <button class="btn btn-stop" onclick="stopEffect()">Stop Effect</button>
         </div>
       </div>
     </div>
@@ -451,16 +504,54 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ============ BLE State ============
+// ============ Apollo BLE Protocol (from APK reverse-engineering) ============
+// Service UUID:        0000ffd5-0000-1000-8000-00805f9b34fb
+// Characteristic UUID: 0000ffd9-0000-1000-8000-00805f9b34fb
+// Power ON:   [0xCC, 0x23, 0x33]
+// Power OFF:  [0xCC, 0x24, 0x33]
+// Set Color:  [0x56, R, G, B, WW, 0xF0, 0xAA]  (WW = warm white)
+// Set Mode:   [0xBB, modeId, speed, 0x44]
+// ============================================================================
+
+const BLE_SERVICE_UUID = 0xffd5;
+const BLE_CHAR_UUID = 0xffd9;
+
+// Effect modes extracted from APK's Mods array
+const EFFECTS = [
+  { id: 0x25, name: '7-Color Fade', icon: '🌈' },
+  { id: 0x26, name: 'Red Fade', icon: '🔴' },
+  { id: 0x27, name: 'Green Fade', icon: '🟢' },
+  { id: 0x28, name: 'Blue Fade', icon: '🔵' },
+  { id: 0x29, name: 'Yellow Fade', icon: '🟡' },
+  { id: 0x2A, name: 'Cyan Fade', icon: '🩵' },
+  { id: 0x2B, name: 'Purple Fade', icon: '🟣' },
+  { id: 0x2C, name: 'White Fade', icon: '⚪' },
+  { id: 0x2D, name: 'Red-Green', icon: '🎄' },
+  { id: 0x2E, name: 'Red-Blue', icon: '🎆' },
+  { id: 0x2F, name: 'Green-Blue', icon: '🌊' },
+  { id: 0x30, name: '7-Color Strobe', icon: '⚡' },
+  { id: 0x31, name: 'Red Strobe', icon: '💥' },
+  { id: 0x32, name: 'Green Strobe', icon: '💚' },
+  { id: 0x33, name: 'Blue Strobe', icon: '💙' },
+  { id: 0x34, name: 'Yellow Strobe', icon: '💛' },
+  { id: 0x35, name: 'Cyan Strobe', icon: '🩵' },
+  { id: 0x36, name: 'Purple Strobe', icon: '💜' },
+  { id: 0x37, name: 'White Strobe', icon: '🤍' },
+  { id: 0x38, name: '7-Color Jump', icon: '🎯' },
+];
+
+// ============ State ============
 let bleDevice = null;
 let bleCharacteristic = null;
 let isConnected = false;
 let isPowerOn = false;
 let currentColor = { r: 255, g: 0, b: 0 };
 let brightness = 100;
+let warmWhite = 0;
+let effectSpeed = 128;
+let activeEffect = null;
 let writeQueue = Promise.resolve();
 
-// ============ Presets ============
 const PRESETS = [
   { name: 'Red', r: 255, g: 0, b: 0 },
   { name: 'Orange', r: 255, g: 100, b: 0 },
@@ -483,6 +574,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   drawColorWheel();
   buildPresets();
+  buildEffects();
   initWheelInteraction();
 
   if ('serviceWorker' in navigator) {
@@ -490,7 +582,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// ============ BLE Functions ============
+// ============ BLE Connection ============
 async function handleConnect() {
   try {
     setStatus('connecting');
@@ -498,46 +590,37 @@ async function handleConnect() {
     document.getElementById('connectBtn').disabled = true;
 
     bleDevice = await navigator.bluetooth.requestDevice({
-      filters: [{ namePrefix: 'AP-' }],
-      optionalServices: [] // We'll discover services
+      filters: [{ namePrefix: 'AP' }],
+      optionalServices: [BLE_SERVICE_UUID]
     });
-
-    // Accept all services since we need to discover
-    // Try again with acceptAllDevices if needed
-    if (!bleDevice) {
-      // Fallback: accept all and filter manually
-      bleDevice = await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true,
-        optionalServices: []
-      });
-    }
 
     bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
 
     document.getElementById('connectBtnText').textContent = 'Connecting...';
     const server = await bleDevice.gatt.connect();
-    const services = await server.getPrimaryServices();
 
-    // Find the writable characteristic
-    bleCharacteristic = null;
-    for (const service of services) {
-      try {
-        const chars = await service.getCharacteristics();
-        for (const char of chars) {
-          if (char.properties.write || char.properties.writeWithoutResponse) {
-            bleCharacteristic = char;
-            break;
+    // Try the known Apollo service/characteristic UUIDs first
+    try {
+      const service = await server.getPrimaryService(BLE_SERVICE_UUID);
+      bleCharacteristic = await service.getCharacteristic(BLE_CHAR_UUID);
+    } catch (e) {
+      // Fallback: scan all services for writable characteristic
+      const services = await server.getPrimaryServices();
+      for (const service of services) {
+        try {
+          const chars = await service.getCharacteristics();
+          for (const char of chars) {
+            if (char.properties.write || char.properties.writeWithoutResponse) {
+              bleCharacteristic = char;
+              break;
+            }
           }
-        }
-        if (bleCharacteristic) break;
-      } catch (e) {
-        // Some services may not be readable, skip
+          if (bleCharacteristic) break;
+        } catch (e2) { /* skip */ }
       }
     }
 
-    if (!bleCharacteristic) {
-      throw new Error('No writable characteristic found');
-    }
+    if (!bleCharacteristic) throw new Error('No writable characteristic found');
 
     isConnected = true;
     setStatus('connected');
@@ -554,16 +637,14 @@ async function handleConnect() {
     setStatus('disconnected');
     document.getElementById('connectBtn').disabled = false;
     document.getElementById('connectBtnText').textContent = 'Connect';
-    if (err.name !== 'NotFoundError') { // User cancelled picker
+    if (err.name !== 'NotFoundError') {
       showToast('Connection failed: ' + err.message);
     }
   }
 }
 
 function handleDisconnect() {
-  if (bleDevice && bleDevice.gatt.connected) {
-    bleDevice.gatt.disconnect();
-  }
+  if (bleDevice && bleDevice.gatt.connected) bleDevice.gatt.disconnect();
   cleanupConnection();
   showToast('Disconnected');
   vibrate();
@@ -593,19 +674,9 @@ function setStatus(state) {
 }
 
 // ============ BLE Write ============
-function hexToBytes(hex) {
-  const bytes = [];
-  for (let i = 0; i < hex.length; i += 2) {
-    bytes.push(parseInt(hex.substr(i, 2), 16));
-  }
-  return new Uint8Array(bytes);
-}
-
-function writeCommand(hexStr) {
+function writeBytes(bytes) {
   if (!bleCharacteristic || !isConnected) return;
-  const data = hexToBytes(hexStr);
-
-  // Queue writes to avoid GATT busy errors
+  const data = new Uint8Array(bytes);
   writeQueue = writeQueue.then(async () => {
     try {
       if (bleCharacteristic.properties.writeWithoutResponse) {
@@ -614,8 +685,7 @@ function writeCommand(hexStr) {
         await bleCharacteristic.writeValueWithResponse(data);
       }
     } catch (err) {
-      console.error('Write failed:', err);
-      // Retry once
+      // Retry once after 100ms
       try {
         await new Promise(r => setTimeout(r, 100));
         if (bleCharacteristic.properties.writeWithoutResponse) {
@@ -623,36 +693,50 @@ function writeCommand(hexStr) {
         } else {
           await bleCharacteristic.writeValueWithResponse(data);
         }
-      } catch (retryErr) {
+      } catch (e2) {
         showToast('Command failed');
       }
     }
   });
 }
 
+// ============ Commands (from APK protocol) ============
+function cmdPowerOn()  { writeBytes([0xCC, 0x23, 0x33]); }
+function cmdPowerOff() { writeBytes([0xCC, 0x24, 0x33]); }
+
+function cmdSetColor(r, g, b, ww) {
+  // Protocol: [0x56, R, G, B, WW, 0xF0, 0xAA]
+  const scale = brightness / 100;
+  writeBytes([
+    0x56,
+    Math.round(r * scale),
+    Math.round(g * scale),
+    Math.round(b * scale),
+    Math.round(ww * scale),
+    0xF0,
+    0xAA
+  ]);
+}
+
+function cmdSetMode(modeId, speed) {
+  // Protocol: [0xBB, mode, speed, 0x44]
+  writeBytes([0xBB, modeId & 0xFF, speed & 0xFF, 0x44]);
+}
+
 // ============ Power ============
 function togglePower() {
   isPowerOn = !isPowerOn;
-  const toggle = document.getElementById('powerToggle');
-  const label = document.getElementById('powerLabel');
-  toggle.classList.toggle('on', isPowerOn);
-  label.textContent = isPowerOn ? 'ON' : 'OFF';
-  writeCommand(isPowerOn ? 'cc2333' : 'cc2433');
+  document.getElementById('powerToggle').classList.toggle('on', isPowerOn);
+  document.getElementById('powerLabel').textContent = isPowerOn ? 'ON' : 'OFF';
+  isPowerOn ? cmdPowerOn() : cmdPowerOff();
   vibrate();
 }
 
 // ============ Color ============
 function sendColorCommand(r, g, b) {
-  const scale = brightness / 100;
-  const sr = Math.round(r * scale);
-  const sg = Math.round(g * scale);
-  const sb = Math.round(b * scale);
-  const hex = '78' +
-    sr.toString(16).padStart(2, '0') +
-    sg.toString(16).padStart(2, '0') +
-    sb.toString(16).padStart(2, '0') +
-    '00f0ee';
-  writeCommand(hex);
+  activeEffect = null;
+  document.querySelectorAll('.effect-btn.active').forEach(b => b.classList.remove('active'));
+  cmdSetColor(r, g, b, warmWhite);
 }
 
 function sendCurrentColor() {
@@ -671,8 +755,6 @@ function updateColorDisplay(r, g, b) {
   document.getElementById('colorSwatch').style.boxShadow = `0 0 20px rgba(${r},${g},${b},0.4)`;
   document.getElementById('colorHex').textContent = hexStr;
   document.getElementById('wheelCursor').style.background = `rgb(${r},${g},${b})`;
-
-  // Remove active from presets
   document.querySelectorAll('.preset-btn.active').forEach(b => b.classList.remove('active'));
 }
 
@@ -680,50 +762,32 @@ function updateColorDisplay(r, g, b) {
 function drawColorWheel() {
   const canvas = document.getElementById('colorWheel');
   const ctx = canvas.getContext('2d');
-  const w = canvas.width;
-  const h = canvas.height;
-  const cx = w / 2;
-  const cy = h / 2;
-  const radius = cx;
-
+  const w = canvas.width, h = canvas.height;
+  const cx = w / 2, cy = h / 2, radius = cx;
   const imageData = ctx.createImageData(w, h);
   const data = imageData.data;
-
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
+      const dx = x - cx, dy = y - cy;
       const dist = Math.sqrt(dx * dx + dy * dy);
-
       if (dist <= radius) {
         const angle = Math.atan2(dy, dx);
         const hue = ((angle * 180 / Math.PI) + 360) % 360;
         const sat = dist / radius;
         const rgb = hsvToRgb(hue, sat, 1);
-
         const idx = (y * w + x) * 4;
-        data[idx] = rgb[0];
-        data[idx + 1] = rgb[1];
-        data[idx + 2] = rgb[2];
-        data[idx + 3] = 255;
+        data[idx] = rgb[0]; data[idx+1] = rgb[1]; data[idx+2] = rgb[2]; data[idx+3] = 255;
       }
     }
   }
-
   ctx.putImageData(imageData, 0, 0);
-
-  // Anti-alias the edge
   ctx.globalCompositeOperation = 'destination-in';
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.fill();
   ctx.globalCompositeOperation = 'source-over';
 }
 
 function hsvToRgb(h, s, v) {
-  const c = v * s;
-  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-  const m = v - c;
+  const c = v * s, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = v - c;
   let r, g, b;
   if (h < 60)       { r = c; g = x; b = 0; }
   else if (h < 120) { r = x; g = c; b = 0; }
@@ -731,89 +795,61 @@ function hsvToRgb(h, s, v) {
   else if (h < 240) { r = 0; g = x; b = c; }
   else if (h < 300) { r = x; g = 0; b = c; }
   else              { r = c; g = 0; b = x; }
-  return [
-    Math.round((r + m) * 255),
-    Math.round((g + m) * 255),
-    Math.round((b + m) * 255)
-  ];
+  return [Math.round((r+m)*255), Math.round((g+m)*255), Math.round((b+m)*255)];
 }
 
 function initWheelInteraction() {
   const canvas = document.getElementById('colorWheel');
   const cursor = document.getElementById('wheelCursor');
   let dragging = false;
-
   function pickColor(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
-    const cx = rect.width / 2;
-    const cy = rect.height / 2;
-    const dx = x - cx;
-    const dy = y - cy;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const radius = rect.width / 2;
-
-    if (dist > radius) return;
-
+    const x = clientX - rect.left, y = clientY - rect.top;
+    const cx = rect.width/2, cy = rect.height/2;
+    const dx = x - cx, dy = y - cy;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist > rect.width/2) return;
     const angle = Math.atan2(dy, dx);
     const hue = ((angle * 180 / Math.PI) + 360) % 360;
-    const sat = Math.min(dist / radius, 1);
+    const sat = Math.min(dist / (rect.width/2), 1);
     const rgb = hsvToRgb(hue, sat, 1);
-
     cursor.style.left = (x / rect.width * 100) + '%';
     cursor.style.top = (y / rect.height * 100) + '%';
-
     updateColorDisplay(rgb[0], rgb[1], rgb[2]);
   }
-
-  canvas.addEventListener('pointerdown', (e) => {
-    dragging = true;
-    canvas.setPointerCapture(e.pointerId);
-    pickColor(e.clientX, e.clientY);
-  });
-
-  canvas.addEventListener('pointermove', (e) => {
-    if (dragging) pickColor(e.clientX, e.clientY);
-  });
-
-  canvas.addEventListener('pointerup', (e) => {
-    if (dragging) {
-      dragging = false;
-      // Auto-send on release
-      sendColorCommand(currentColor.r, currentColor.g, currentColor.b);
-    }
-  });
-
+  canvas.addEventListener('pointerdown', (e) => { dragging = true; canvas.setPointerCapture(e.pointerId); pickColor(e.clientX, e.clientY); });
+  canvas.addEventListener('pointermove', (e) => { if (dragging) pickColor(e.clientX, e.clientY); });
+  canvas.addEventListener('pointerup', () => { if (dragging) { dragging = false; sendColorCommand(currentColor.r, currentColor.g, currentColor.b); } });
   canvas.addEventListener('pointercancel', () => { dragging = false; });
-
-  // Position cursor at initial red (right side)
-  cursor.style.left = '88%';
-  cursor.style.top = '50%';
+  cursor.style.left = '88%'; cursor.style.top = '50%';
 }
 
-// ============ Brightness ============
+// ============ Brightness + Warm White ============
 function onBrightnessChange(val) {
   brightness = parseInt(val);
   document.getElementById('brightnessVal').textContent = brightness + '%';
 }
 
-// Debounced brightness apply: sends color command when slider is released
+function onWarmWhiteChange(val) {
+  warmWhite = parseInt(val);
+  document.getElementById('warmWhiteVal').textContent = warmWhite;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  const slider = document.getElementById('brightnessSlider');
-  if (slider) {
-    slider.addEventListener('change', () => {
-      if (isConnected) {
-        sendColorCommand(currentColor.r, currentColor.g, currentColor.b);
-      }
-    });
-  }
+  const bs = document.getElementById('brightnessSlider');
+  const ww = document.getElementById('warmWhiteSlider');
+  if (bs) bs.addEventListener('change', () => {
+    if (isConnected && !activeEffect) sendColorCommand(currentColor.r, currentColor.g, currentColor.b);
+  });
+  if (ww) ww.addEventListener('change', () => {
+    if (isConnected && !activeEffect) sendColorCommand(currentColor.r, currentColor.g, currentColor.b);
+  });
 });
 
 // ============ Presets ============
 function buildPresets() {
   const grid = document.getElementById('presetsGrid');
-  PRESETS.forEach((preset, i) => {
+  PRESETS.forEach((preset) => {
     const btn = document.createElement('div');
     btn.className = 'preset-btn';
     btn.style.background = `rgb(${preset.r}, ${preset.g}, ${preset.b})`;
@@ -829,10 +865,48 @@ function buildPresets() {
   });
 }
 
-// ============ Utils ============
-function vibrate() {
-  if (navigator.vibrate) navigator.vibrate(15);
+// ============ Effects ============
+function buildEffects() {
+  const grid = document.getElementById('effectsGrid');
+  EFFECTS.forEach((effect) => {
+    const btn = document.createElement('div');
+    btn.className = 'effect-btn';
+    btn.innerHTML = `<span class="effect-icon">${effect.icon}</span>${effect.name}`;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.effect-btn.active').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeEffect = effect.id;
+      cmdSetMode(effect.id, effectSpeed);
+      vibrate();
+      showToast(effect.name);
+    });
+    grid.appendChild(btn);
+  });
 }
+
+function onSpeedChange(val) {
+  effectSpeed = parseInt(val);
+  document.getElementById('speedVal').textContent = effectSpeed;
+  if (activeEffect && isConnected) {
+    cmdSetMode(activeEffect, effectSpeed);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const ss = document.getElementById('speedSlider');
+  if (ss) ss.addEventListener('input', (e) => onSpeedChange(e.target.value));
+});
+
+function stopEffect() {
+  activeEffect = null;
+  document.querySelectorAll('.effect-btn.active').forEach(b => b.classList.remove('active'));
+  sendColorCommand(currentColor.r, currentColor.g, currentColor.b);
+  showToast('Effect stopped');
+  vibrate();
+}
+
+// ============ Utils ============
+function vibrate() { if (navigator.vibrate) navigator.vibrate(15); }
 
 function showToast(msg) {
   const toast = document.getElementById('toast');
